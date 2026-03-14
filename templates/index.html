@@ -1,0 +1,450 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Caption Generator</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: #f8f9fc;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background-color: #e8d5f2;
+            color: #6b4c9a;
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 16px rgba(107, 76, 154, 0.15);
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .header-icon {
+            font-size: 3rem;
+            color: #6b4c9a;
+        }
+        
+        .header-text h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header-text p {
+            color: #8b6bb7;
+            font-size: 1rem;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .upload-area {
+            border: 2px dashed #b3d9f7;
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            background-color: #f5fbff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+        
+        .upload-area:hover {
+            border-color: #7ab8e8;
+            background-color: #e8f6ff;
+            transform: translateY(-2px);
+        }
+        
+        .upload-area.dragover {
+            border-color: #4a7ba7;
+            background: #d4edff;
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 4rem;
+            color: #7ab8e8;
+            margin-bottom: 1rem;
+        }
+        
+        .upload-text {
+            font-size: 1.1rem;
+            color: #4a7ba7;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .upload-hint {
+            font-size: 0.9rem;
+            color: #9bb3c7;
+            margin-bottom: 1rem;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .btn {
+            background-color: #9b7bc6;
+            color: white;
+            border: none;
+            padding: 0.875rem 2.5rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(155, 123, 198, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn:hover:not(:disabled) {
+            background-color: #8563b3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(155, 123, 198, 0.4);
+        }
+        
+        .btn:disabled {
+            background-color: #d1c4e0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            background-color: #e3f2fd;
+            border: 2px solid #b3d9f7;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .spinner {
+            border: 4px solid #e8eaf6;
+            border-top: 4px solid #7ab8e8;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: #4a7ba7;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .result {
+            display: none;
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            margin-top: 2rem;
+        }
+        
+        .result-header {
+            color: #6b4c9a;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .result-image-container {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            background-color: #f5f5f5;
+        }
+        
+        .result-image {
+            width: 60%;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .caption-container {
+            background-color: #e8d5f2;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #9b7bc6;
+        }
+        
+        .caption-label {
+            color: #6b4c9a;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .caption {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #2d2d6f;
+        }
+        
+        .error {
+            background-color: #fce4ec;
+            color: #c2185b;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+            border: 2px solid #f8bbd0;
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .error .material-icons {
+            font-size: 1.5rem;
+        }
+        
+        .file-info {
+            background-color: #e3f2fd;
+            color: #4a7ba7;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            display: none;
+            border-left: 4px solid #7ab8e8;
+        }
+        
+        .file-info .material-icons {
+            vertical-align: middle;
+            margin-right: 0.5rem;
+            font-size: 1.25rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header {
+                padding: 1.5rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .header-icon {
+                font-size: 2.5rem;
+            }
+
+            .header-text h1 {
+                font-size: 1.5rem;
+            }
+
+            .content {
+                padding: 1.5rem;
+            }
+
+            .upload-area {
+                padding: 2rem 1rem;
+            }
+
+            .result {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <span class="material-icons header-icon">auto_awesome</span>
+                <div class="header-text">
+                    <h1>Image Caption Generator</h1>
+                    <p>Upload an image and let AI describe what it sees</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="upload-area" id="uploadArea">
+                    <span class="material-icons upload-icon">cloud_upload</span>
+                    <div class="upload-text">Click to upload or drag and drop</div>
+                    <input type="file" id="fileInput" class="file-input" accept="image/*">
+                    <button type="button" class="btn" onclick="document.getElementById('fileInput').click()">
+                        <span class="material-icons">image</span>
+                        Choose Image
+                    </button>
+                </div>
+                
+                <div id="fileInfo" class="file-info"></div>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p class="loading-text">Analyzing image and generating caption...</p>
+                </div>
+                
+                <div class="result" id="result">
+                    <div class="result-header">
+                        <span class="material-icons">image</span>
+                        Generated Caption
+                    </div>
+                    <div class="result-image-container">
+                        <img id="resultImage" class="result-image" alt="Uploaded image">
+                    </div>
+                    <div class="caption-container">
+                        <div class="caption-label">
+                            <span class="material-icons">description</span>
+                            AI Description
+                        </div>
+                        <div class="caption" id="caption"></div>
+                    </div>
+                </div>
+                
+                <div id="error" class="error">
+                    <span class="material-icons">error</span>
+                    <span id="errorMessage"></span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const error = document.getElementById('error');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+        
+        function handleFileSelect(file) {
+            if (!file.type.startsWith('image/')) {
+                showError('Please select an image file.');
+                return;
+            }
+            
+            if (file.size > 16 * 1024 * 1024) {
+                showError('File size must be less than 16MB.');
+                return;
+            }
+            
+            fileInfo.innerHTML = `
+                <span class="material-icons">check_circle</span>
+                <strong>Selected:</strong> ${file.name} 
+                <span style="opacity: 0.7;">(${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+            `;
+            fileInfo.style.display = 'block';
+            
+            uploadFile(file);
+        }
+        
+        function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            error.style.display = 'none';
+            
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                
+                if (data.success) {
+                    document.getElementById('resultImage').src = data.image;
+                    document.getElementById('caption').textContent = data.caption;
+                    result.style.display = 'block';
+                } else {
+                    showError(data.error || 'An error occurred while processing the image.');
+                }
+            })
+            .catch(err => {
+                loading.style.display = 'none';
+                showError('Network error. Please try again.');
+                console.error('Error:', err);
+            });
+        }
+        
+        function showError(message) {
+            errorMessage.textContent = message;
+            error.style.display = 'flex';
+            result.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
