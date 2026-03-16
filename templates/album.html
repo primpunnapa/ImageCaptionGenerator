@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Album - {{ album_name }}</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: #f8f9fc;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            background-color: #e3f2fd;
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 16px rgba(74, 123, 167, 0.15);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #4a7ba7;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        .back-link:hover {
+            background-color: rgba(74, 123, 167, 0.1);
+            transform: translateX(-5px);
+        }
+
+        .back-link .material-icons {
+            font-size: 1.25rem;
+        }
+
+        .album-title {
+            color: #1e4a6f;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .album-title .material-icons {
+            font-size: 2.5rem;
+            color: #7ab8e8;
+        }
+
+        .album-description {
+            color: #4a7ba7;
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .image-count {
+            background-color: #7ab8e8;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .image-count .material-icons {
+            font-size: 1.1rem;
+        }
+
+        .btn {
+            background-color: #7ab8e8;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(122, 184, 232, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover:not(:disabled) {
+            background-color: #5fa3d8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(122, 184, 232, 0.4);
+        }
+
+        .btn:disabled {
+            background-color: #b3d9f7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            position: relative;
+            min-height: 320px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(122, 184, 232, 0.2);
+        }
+
+        .image-wrapper {
+            position: relative;
+            width: 100%;
+            padding-top: 75%;
+            background-color: #f5f5f5;
+            overflow: hidden;
+        }
+
+        .image-wrapper img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover .image-wrapper img {
+            transform: scale(1.05);
+        }
+
+        .caption-container {
+            padding: 1.25rem;
+            background: linear-gradient(to bottom, #fff 0%, #e3f2fd 100%);
+            border-top: 2px solid #b3d9f7;
+        }
+
+        .caption-label {
+            color: #4a7ba7;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .caption-label .material-icons {
+            font-size: 1rem;
+        }
+
+        .caption {
+            color: #2d2d6f;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .loading {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 0.75rem;
+            color: #4a7ba7;
+            z-index: 20;
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(2px);
+        }
+
+        .spinner {
+            border: 4px solid #e3f2fd;
+            border-top: 4px solid #7ab8e8;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            background: white;
+            border-radius: 16px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .empty-icon {
+            font-size: 5rem;
+            color: #b3d9f7;
+            margin-bottom: 1rem;
+        }
+
+        .empty-text {
+            color: #1e4a6f;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-hint {
+            color: #4a7ba7;
+            font-size: 1rem;
+        }
+
+        .error-state {
+            background: #fff5f5;
+            border: 2px solid #ffcdd2;
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            color: #c62828;
+        }
+
+        .error-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Upload Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e4a6f;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #b3d9f7;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            background-color: #f5fbff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .file-upload-area:hover {
+            border-color: #7ab8e8;
+            background-color: #e8f6ff;
+        }
+
+        .file-upload-area.has-files {
+            border-color: #4caf50;
+            background-color: #e8f5e9;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #7ab8e8;
+            margin-bottom: 0.75rem;
+        }
+
+        .upload-text {
+            color: #4a7ba7;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .upload-hint {
+            color: #9bb3c7;
+            font-size: 0.85rem;
+        }
+
+        .file-input-hidden {
+            display: none;
+        }
+
+        .selected-files {
+            padding: 1rem;
+            background-color: #e3f2fd;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .selected-files.show {
+            display: block;
+        }
+
+        .file-count {
+            color: #4a7ba7;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn-secondary {
+            background-color: #6b6b9f;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #5a5a88;
+        }
+
+        .upload-status {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .upload-status.success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            display: block;
+        }
+
+        .upload-status.error {
+            background-color: #fce4ec;
+            color: #c2185b;
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .page-header {
+                padding: 1.5rem;
+            }
+
+            .album-title {
+                font-size: 1.5rem;
+            }
+
+            .album-title .material-icons {
+                font-size: 2rem;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 1rem;
+            }
+
+            .caption-container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <a class="back-link" href="/">
+                <span class="material-icons">arrow_back</span>
+                Back to Albums
+            </a>
+            <h1 class="album-title">
+                <span class="material-icons">photo_album</span>
+                {{ album_name }}
+            </h1>
+            <p class="album-description">AI-generated captions for each image in this album</p>
+        </div>
+
+        <div class="toolbar">
+            <div class="image-count" id="imageCount" style="display: none;">
+                <span class="material-icons">image</span>
+                <span id="countText">0 images</span>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn btn-secondary" onclick="showRenameModal()">
+                    <span class="material-icons">edit</span>
+                    Rename Album
+                </button>
+                <button class="btn" onclick="showUploadModal()">
+                    <span class="material-icons">cloud_upload</span>
+                    Upload Images
+                </button>
+            </div>
+        </div>
+
+        <div id="grid" class="grid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p class="loading-text">Loading images...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-header">
+                <span class="material-icons">cloud_upload</span>
+                Upload Images
+            </h2>
+            <div class="file-upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                <span class="material-icons upload-icon">cloud_upload</span>
+                <p class="upload-text">Click to select images</p>
+                <p class="upload-hint">Multiple images supported</p>
+                <input type="file" id="fileInput" multiple accept="image/*" class="file-input-hidden">
+            </div>
+            <div class="selected-files" id="selectedFiles">
+                <div class="file-count">
+                    <span class="material-icons">check_circle</span>
+                    <span id="fileCountText">0 files selected</span>
+                </div>
+            </div>
+            <div id="uploadStatus" class="upload-status"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeUploadModal()">Cancel</button>
+                <button class="btn" id="uploadBtn" onclick="uploadImages()" disabled>
+                    <span class="material-icons">upload</span>
+                    Upload
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rename Album Modal -->
+    <div id="renameModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-header">
+                <span class="material-icons">edit</span>
+                Rename Album
+            </h2>
+            <div class="form-group">
+                <label class="form-label">New Album Name</label>
+                <input 
+                    type="text" 
+                    class="form-input" 
+                    id="newAlbumName" 
+                    placeholder="Enter new album name"
+                    value="{{ album_name }}"
+                >
+            </div>
+            <div id="renameStatus" class="upload-status"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeRenameModal()">Cancel</button>
+                <button class="btn" id="renameBtn" onclick="renameAlbum()">
+                    <span class="material-icons">save</span>
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const album = `{{ album_name }}`;
+        let selectedFiles = [];
+
+        // File selection handling
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            selectedFiles = Array.from(e.target.files);
+            const uploadArea = document.getElementById('uploadArea');
+            const selectedFilesDiv = document.getElementById('selectedFiles');
+            const fileCountText = document.getElementById('fileCountText');
+            const uploadBtn = document.getElementById('uploadBtn');
+
+            if (selectedFiles.length > 0) {
+                uploadArea.classList.add('has-files');
+                selectedFilesDiv.classList.add('show');
+                fileCountText.textContent = `${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} selected`;
+                uploadBtn.disabled = false;
+            } else {
+                uploadArea.classList.remove('has-files');
+                selectedFilesDiv.classList.remove('show');
+                uploadBtn.disabled = true;
+            }
+        });
+
+        async function loadImages() {
+            try {
+                const res = await fetch(`/album/${encodeURIComponent(album)}/images`);
+                const data = await res.json();
+                const grid = document.getElementById('grid');
+                
+                if (data.error) {
+                    grid.innerHTML = `
+                        <div class="error-state">
+                            <span class="material-icons error-icon">error_outline</span>
+                            <p style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">Error Loading Images</p>
+                            <p>${data.error}</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const images = data.images || [];
+                
+                // Update image count
+                const imageCount = document.getElementById('imageCount');
+                const countText = document.getElementById('countText');
+                if (images.length > 0) {
+                    imageCount.style.display = 'inline-flex';
+                    countText.textContent = `${images.length} ${images.length === 1 ? 'image' : 'images'}`;
+                }
+
+                if (images.length === 0) {
+                    grid.innerHTML = `
+                        <div class="empty-state">
+                            <span class="material-icons empty-icon">photo_library</span>
+                            <p class="empty-text">No images in this album yet</p>
+                            <p class="empty-hint">Upload some images to get started!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                grid.innerHTML = '';
+                images.forEach(img => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    
+                    card.innerHTML = `
+                        <div class="image-wrapper">
+                            <img src="${img.url}" alt="${img.caption || 'Image'}" loading="lazy">
+                        </div>
+                        <div class="caption-container">
+                            <div class="caption-label">
+                                <span class="material-icons">auto_awesome</span>
+                                AI Caption
+                            </div>
+                            <div class="caption">${img.caption || 'No caption available'}</div>
+                        </div>
+                    `;
+                    
+                    grid.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error loading images:', error);
+                document.getElementById('grid').innerHTML = `
+                    <div class="error-state">
+                        <span class="material-icons error-icon">error_outline</span>
+                        <p style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">Failed to Load Images</p>
+                        <p>Please check your connection and try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function showUploadModal() {
+            document.getElementById('uploadModal').classList.add('active');
+        }
+
+        function closeUploadModal() {
+            document.getElementById('uploadModal').classList.remove('active');
+            document.getElementById('fileInput').value = '';
+            document.getElementById('uploadArea').classList.remove('has-files');
+            document.getElementById('selectedFiles').classList.remove('show');
+            document.getElementById('uploadStatus').className = 'upload-status';
+            document.getElementById('uploadStatus').textContent = '';
+            selectedFiles = [];
+        }
+
+        function showRenameModal() {
+            document.getElementById('renameModal').classList.add('active');
+            document.getElementById('newAlbumName').focus();
+        }
+
+        function closeRenameModal() {
+            document.getElementById('renameModal').classList.remove('active');
+            document.getElementById('renameStatus').className = 'upload-status';
+            document.getElementById('renameStatus').textContent = '';
+        }
+
+        async function renameAlbum() {
+            const newName = document.getElementById('newAlbumName').value.trim();
+            const renameStatus = document.getElementById('renameStatus');
+            const renameBtn = document.getElementById('renameBtn');
+            
+            if (!newName) {
+                renameStatus.className = 'upload-status error';
+                renameStatus.textContent = 'Please enter a new album name';
+                return;
+            }
+
+            if (newName === album) {
+                closeRenameModal();
+                return;
+            }
+
+            renameBtn.disabled = true;
+            renameBtn.innerHTML = '<span class="material-icons">hourglass_empty</span> Renaming...';
+            
+            try {
+                const res = await fetch(`/album/${encodeURIComponent(album)}/rename`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ new_name: newName })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    renameStatus.className = 'upload-status success';
+                    renameStatus.textContent = 'Album renamed successfully! Redirecting...';
+                    
+                    setTimeout(() => {
+                        window.location.href = `/album/${encodeURIComponent(data.new_name)}`;
+                    }, 1000);
+                } else {
+                    renameStatus.className = 'upload-status error';
+                    renameStatus.textContent = data.error || 'Failed to rename album';
+                    renameBtn.disabled = false;
+                    renameBtn.innerHTML = '<span class="material-icons">save</span> Save';
+                }
+            } catch (error) {
+                renameStatus.className = 'upload-status error';
+                renameStatus.textContent = 'Network error. Please try again.';
+                renameBtn.disabled = false;
+                renameBtn.innerHTML = '<span class="material-icons">save</span> Save';
+            }
+        }
+
+        async function uploadImages() {
+            if (selectedFiles.length === 0) return;
+
+            const formData = new FormData();
+            formData.append('album_name', album);
+            for (const file of selectedFiles) {
+                formData.append('files', file);
+            }
+
+            const uploadBtn = document.getElementById('uploadBtn');
+            const uploadStatus = document.getElementById('uploadStatus');
+            
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<span class="material-icons">hourglass_empty</span> Uploading...';
+            uploadStatus.className = 'upload-status';
+            uploadStatus.textContent = 'Uploading and generating captions...';
+            uploadStatus.style.display = 'block';
+
+            try {
+                const res = await fetch('/create_album', { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                if (data.success) {
+                    uploadStatus.className = 'upload-status success';
+                    uploadStatus.textContent = `Successfully uploaded ${data.files.length} image${data.files.length > 1 ? 's' : ''}!`;
+                    
+                    setTimeout(() => {
+                        closeUploadModal();
+                        loadImages();
+                    }, 1500);
+                } else {
+                    uploadStatus.className = 'upload-status error';
+                    uploadStatus.textContent = data.error || 'Upload failed';
+                    uploadBtn.disabled = false;
+                    uploadBtn.innerHTML = '<span class="material-icons">upload</span> Upload';
+                }
+            } catch (error) {
+                uploadStatus.className = 'upload-status error';
+                uploadStatus.textContent = 'Network error. Please try again.';
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<span class="material-icons">upload</span> Upload';
+            }
+        }
+
+        loadImages();
+    </script>
+</body>
+</html>

@@ -19,7 +19,8 @@ Create a virtual environment and install dependencies:
 python -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
-pip install flask torch transformers pillow
+pip install -r requirements.txt
+export HUGGINGFACE_API_TOKEN="your_huggingface_token_here"
 ```
 
 ## Run
