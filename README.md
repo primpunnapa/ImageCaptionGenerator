@@ -7,10 +7,6 @@ Small Flask app that captions uploaded images using Salesforce BLIP (transformer
 - Server generates caption using `Salesforce/blip-image-captioning-large`
 - Result image and caption shown in the browser
 
-## Prerequisites
-- Python 3.8+
-- pip
-- (Optional) GPU + CUDA for faster model inference
 
 ## Install
 Create a virtual environment and install dependencies:
