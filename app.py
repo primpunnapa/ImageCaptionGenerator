@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('APP_SECRET', 'dev-secret')
+app.config['SECRET_KEY'] = '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'
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB per file
 
@@ -223,6 +223,40 @@ def album_images(album_name):
         return jsonify({'images': items})
     except Exception as e:
         logger.error(f"Error fetching album images: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/album/<album_name>/delete_image', methods=['POST'])
+def delete_image(album_name):
+    """Delete a single image file from an album"""
+    try:
+        data = request.get_json() or {}
+        filename = data.get('filename')
+        if not filename:
+            return jsonify({'error': 'filename is required'}), 400
+
+        # sanitize inputs
+        safe_album = secure_filename(album_name)
+        safe_fname = secure_filename(filename)
+
+        album_path = os.path.join(app.config['UPLOAD_FOLDER'], safe_album)
+        if not os.path.isdir(album_path):
+            return jsonify({'error': 'Album not found'}), 404
+
+        file_path = os.path.join(album_path, safe_fname)
+
+        # Prevent deleting outside album (extra check)
+        if not os.path.commonpath([os.path.abspath(file_path), os.path.abspath(album_path)]) == os.path.abspath(album_path):
+            return jsonify({'error': 'Invalid filename'}), 400
+
+        if not os.path.exists(file_path):
+            return jsonify({'error': 'File not found'}), 404
+
+        os.remove(file_path)
+
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Error deleting image: {e}")
         return jsonify({'error': str(e)}), 500
 
 
